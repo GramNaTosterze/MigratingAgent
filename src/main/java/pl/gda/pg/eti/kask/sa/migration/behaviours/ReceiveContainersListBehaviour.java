@@ -38,6 +38,7 @@ public class ReceiveContainersListBehaviour extends Behaviour {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void action() {
         ACLMessage msg = myAgent.receive(mt);
         if (msg != null) {
@@ -46,10 +47,10 @@ public class ReceiveContainersListBehaviour extends Behaviour {
                 ContentElement ce = myAgent.getContentManager().extractContent(msg);
                 jade.util.leap.List items = ((Result) ce).getItems();
                 List<Location> locations = new ArrayList<>();
-                items.iterator().forEachRemaining(i -> {
-                    locations.add((Location) i);
-                });
-                //locations.remove(myAgent.here());
+                items.iterator().forEachRemaining(
+                        (i) -> locations.add((Location) i)
+                );
+                locations.remove(myAgent.here());
                 myAgent.setLocations(locations);
                 myAgent.addBehaviour(new MigratingBehaviour(myAgent));
             } catch (Codec.CodecException | OntologyException ex) {

@@ -5,12 +5,12 @@ import jade.content.lang.sl.SLCodec;
 import jade.core.Agent;
 import jade.core.Location;
 import jade.domain.mobility.MobilityOntology;
+
 import java.util.List;
 import javax.swing.JOptionPane;
 import lombok.Getter;
 import lombok.Setter;
 import pl.gda.pg.eti.kask.sa.migration.behaviours.RequestContainersListBehaviour;
-
 
 public class MigratingAgent extends Agent {
 
@@ -38,13 +38,6 @@ public class MigratingAgent extends Agent {
         //restore state
         //resume threads
         successfullMove = true;
-        ContentManager cm = getContentManager();
-        cm.registerLanguage(new SLCodec());
-        cm.registerOntology(MobilityOntology.getInstance());
-        JOptionPane.showMessageDialog(null, "Przybywam!");
-        if (getLocations().isEmpty()) {
-            addBehaviour(new RequestContainersListBehaviour(this));
-        }
     }
 
     @Override
@@ -52,14 +45,31 @@ public class MigratingAgent extends Agent {
         JOptionPane.showMessageDialog(null, "Odchodzę!");
         //stop threads
         //save state
-        successfullMove = false;
         super.beforeMove();
     }
 
     @Override
     public void restoreBufferedState () {
         super.restoreBufferedState();
-        if(successfullMove)
-            JOptionPane.showMessageDialog(null, "Aj karamba Spocka usuneło");
+
+        if (successfullMove) { successfullMove = false; }
+        else {
+            successfullMove = true;
+            JOptionPane.showMessageDialog(null, "Brak Kontenera");
+            reloadLocationList();
+        }
+
+
+        ContentManager cm = getContentManager();
+        cm.registerLanguage(new SLCodec());
+        cm.registerOntology(MobilityOntology.getInstance());
+        JOptionPane.showMessageDialog(null, "Przybywam!");
+        if (getLocations().isEmpty())
+            reloadLocationList();
+    }
+
+    public void reloadLocationList() {
+        JOptionPane.showMessageDialog(null, "Pobrano nową listę");
+        addBehaviour(new RequestContainersListBehaviour(this));
     }
 }
