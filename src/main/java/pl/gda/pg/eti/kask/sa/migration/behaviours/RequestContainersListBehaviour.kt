@@ -1,48 +1,34 @@
-package pl.gda.pg.eti.kask.sa.migration.behaviours;
+package pl.gda.pg.eti.kask.sa.migration.behaviours
 
-import jade.content.lang.Codec;
-import jade.content.lang.sl.SLCodec;
-import jade.content.onto.OntologyException;
-import jade.content.onto.basic.Action;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.domain.JADEAgentManagement.QueryPlatformLocationsAction;
-import jade.domain.mobility.MobilityOntology;
-import jade.lang.acl.ACLMessage;
-import java.util.UUID;
-import java.util.logging.Level;
-import lombok.extern.java.Log;
-import pl.gda.pg.eti.kask.sa.migration.agents.MigratingAgent;
+import jade.content.lang.sl.SLCodec
+import jade.content.onto.basic.Action
+import jade.core.behaviours.OneShotBehaviour
+import jade.domain.JADEAgentManagement.QueryPlatformLocationsAction
+import jade.domain.mobility.MobilityOntology
+import jade.lang.acl.ACLMessage
+import pl.gda.pg.eti.kask.sa.migration.agents.MigratingAgent
+import java.util.*
 
-@Log
-public class RequestContainersListBehaviour extends OneShotBehaviour {
+class RequestContainersListBehaviour(agent: MigratingAgent) : OneShotBehaviour(agent) {
 
-    protected final MigratingAgent myAgent;
+    override fun action() {
+        val query = QueryPlatformLocationsAction()
+        val action = Action(myAgent.ams, query)
 
-    public RequestContainersListBehaviour(MigratingAgent agent) {
-        super(agent);
-        myAgent = agent;
-    }
+        val conversationId = UUID.randomUUID().toString()
 
-    @Override
-    public void action() {
-        QueryPlatformLocationsAction query = new QueryPlatformLocationsAction();
-        Action action = new Action(myAgent.getAMS(), query);
-
-        String conversationId = UUID.randomUUID().toString();
-        
-        ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-        request.setLanguage(new SLCodec().getName());
-        request.setOntology(MobilityOntology.getInstance().getName());
-        request.addReceiver(myAgent.getAMS());
-        request.setConversationId(conversationId);
+        val request = ACLMessage(ACLMessage.REQUEST)
+        request.language = SLCodec().name
+        request.ontology = MobilityOntology.getInstance().name
+        request.addReceiver(myAgent.ams)
+        request.conversationId = conversationId
 
         try {
-            myAgent.getContentManager().fillContent(request, action);
-            myAgent.send(request);
-            myAgent.addBehaviour(new ReceiveContainersListBehaviour(myAgent, conversationId));
-        } catch (Codec.CodecException | OntologyException ex) {
-            log.log(Level.WARNING, ex.getMessage(), ex);
+            myAgent.contentManager.fillContent(request, action)
+            myAgent.send(request)
+            myAgent.addBehaviour(ReceiveContainersListBehaviour(myAgent as MigratingAgent, conversationId))
+        } catch (ex: Exception) {
+            //RequestContainersListBehaviour.log.log(Level.WARNING, ex.message, ex)
         }
     }
-
 }

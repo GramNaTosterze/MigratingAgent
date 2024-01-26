@@ -1,75 +1,59 @@
-package pl.gda.pg.eti.kask.sa.migration.agents;
+package pl.gda.pg.eti.kask.sa.migration.agents
 
-import jade.content.ContentManager;
-import jade.content.lang.sl.SLCodec;
-import jade.core.Agent;
-import jade.core.Location;
-import jade.domain.mobility.MobilityOntology;
+import jade.content.lang.sl.SLCodec
+import jade.core.Agent
+import jade.core.Location
+import jade.domain.mobility.MobilityOntology
+import pl.gda.pg.eti.kask.sa.migration.behaviours.RequestContainersListBehaviour
+import javax.swing.JOptionPane
 
-import java.util.List;
-import javax.swing.JOptionPane;
-import lombok.Getter;
-import lombok.Setter;
-import pl.gda.pg.eti.kask.sa.migration.behaviours.RequestContainersListBehaviour;
+class MigratingAgent: Agent() {
 
-public class MigratingAgent extends Agent {
+    var locations: MutableList<Location> = emptyList<Location>().toMutableList()
+    private var successfulMove: Boolean = false
 
-    @Setter
-    @Getter
-    private List<Location> locations;
-    private Boolean successfullMove;
-
-    public MigratingAgent() {
+    override fun setup() {
+        super.setup()
+        successfulMove = true
+        val cm = contentManager
+        cm.registerLanguage(SLCodec())
+        cm.registerOntology(MobilityOntology.getInstance())
+        this.addBehaviour(RequestContainersListBehaviour(this))
     }
-
-    @Override
-    protected void setup() {
-        super.setup();
-        successfullMove = true;
-        ContentManager cm = getContentManager();
-        cm.registerLanguage(new SLCodec());
-        cm.registerOntology(MobilityOntology.getInstance());
-        this.addBehaviour(new RequestContainersListBehaviour(this));
-    }
-
-    @Override
-    protected void afterMove() {
-        super.afterMove();
+    override fun afterMove() {
+        super.afterMove()
         //restore state
         //resume threads
-        successfullMove = true;
+        successfulMove = true
     }
+    override fun beforeMove() {
+        JOptionPane.showMessageDialog(null, "Odchodzę!")
 
-    @Override
-    protected void beforeMove() {
-        JOptionPane.showMessageDialog(null, "Odchodzę!");
+
         //stop threads
         //save state
-        super.beforeMove();
+        super.beforeMove()
     }
+    override fun restoreBufferedState() {
+        super.restoreBufferedState()
 
-    @Override
-    public void restoreBufferedState () {
-        super.restoreBufferedState();
-
-        if (successfullMove) { successfullMove = false; }
-        else {
-            successfullMove = true;
-            JOptionPane.showMessageDialog(null, "Brak Kontenera");
-            reloadLocationList();
+        if (successfulMove) {
+            successfulMove = false
+        } else {
+            successfulMove = true
+            JOptionPane.showMessageDialog(null, "Brak Kontenera")
+            reloadLocationList()
         }
 
 
-        ContentManager cm = getContentManager();
-        cm.registerLanguage(new SLCodec());
-        cm.registerOntology(MobilityOntology.getInstance());
-        JOptionPane.showMessageDialog(null, "Przybywam!");
-        if (getLocations().isEmpty())
-            reloadLocationList();
+        val cm = contentManager
+        cm.registerLanguage(SLCodec())
+        cm.registerOntology(MobilityOntology.getInstance())
+        JOptionPane.showMessageDialog(null, "Przybywam!")
+        if (locations.isEmpty()) reloadLocationList()
     }
-
-    public void reloadLocationList() {
-        JOptionPane.showMessageDialog(null, "Pobrano nową listę");
-        addBehaviour(new RequestContainersListBehaviour(this));
+    private fun reloadLocationList() {
+        JOptionPane.showMessageDialog(null, "Pobrano nową listę")
+        addBehaviour(RequestContainersListBehaviour(this))
     }
 }
